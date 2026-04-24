@@ -1,28 +1,43 @@
 import express from "express";
 import cors from "cors";
-import expensesRouter from "./routes/expenses";
 import rateLimit from "express-rate-limit";
+import path from "path";
+import expensesRouter from "./routes/expenses";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 15 minutes
-  max: 30, // max 100 requests per IP
+  windowMs: 60 * 1000,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests, please try again later." },
 });
+
+app.use(cors());
+app.use(express.json());
 app.use(limiter);
+
+// Serve frontend static files
+const FRONTEND_DIST = path.join(__dirname, "../../frontend/dist");
+app.use(express.static(FRONTEND_DIST));
+
 // Health check
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-// Routes
+// API Routes
 app.use("/expenses", expensesRouter);
+
+// Catch-all: serve index.html for any non-API route
+app.get("/{*path}", (req, res, next) => {
+  if (req.path.startsWith("/expenses") || req.path === "/health") {
+    return next();
+  }
+  res.sendFile(path.join(FRONTEND_DIST, "index.html"));
+});
 
 // 404 handler
 app.use((_req, res) => {
