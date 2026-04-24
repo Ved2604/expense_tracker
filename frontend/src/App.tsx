@@ -1,8 +1,11 @@
 import { useExpenses } from "./hooks/useExpenses";
-import ExpenseForm from "./components/ExpenseForm";
 import ExpenseFilters from "./components/ExpenseFilters";
 import ExpenseTable from "./components/ExpenseTable";
 import ErrorBanner from "./components/ErrorBanner";
+import AddExpenseModal from "./components/AddExpenseModal";
+import EditModal from "./components/EditModal";
+import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
+import { useState } from "react";
 
 export default function App() {
   const {
@@ -12,41 +15,117 @@ export default function App() {
     error,
     filterCategory,
     setFilterCategory,
-    sortByDate,
-    setSortByDate,
+    sortOption,
+    setSortOption,
     submitExpense,
+    handleDelete,
+    handleUpdate,
     total,
     CATEGORIES,
+    showAddModal,
+    setShowAddModal,
+    editingExpense,
+    setEditingExpense,
   } = useExpenses();
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    await handleDelete(deletingId);
+    setDeletingId(null);
+  };
 
   return (
     <div
       style={{
-        maxWidth: 720,
-        margin: "0 auto",
-        padding: "2rem 1rem",
-        fontFamily: "sans-serif",
+        minHeight: "100vh",
+        background: "var(--bg)",
+        padding: "0 0 4rem",
       }}
     >
-      <h1 style={{ marginBottom: "1.5rem" }}>💸 Expense Tracker</h1>
+      {/* Header */}
+      <header
+        style={{
+          borderBottom: "1px solid var(--border)",
+          background: "var(--bg-card)",
+          boxShadow: "var(--shadow-sm)",
+          marginBottom: "2rem",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 900,
+            margin: "0 auto",
+            padding: "1rem 1.5rem",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>💸</span>
+            <h1 style={{ fontSize: "1.2rem", fontWeight: 700, margin: 0 }}>
+              Expense Tracker
+            </h1>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowAddModal(true)}
+          >
+            + Add Expense
+          </button>
+        </div>
+      </header>
 
-      <ExpenseForm
-        categories={CATEGORIES}
-        submitting={submitting}
-        onSubmit={submitExpense}
-      />
+      {/* Main content */}
+      <main style={{ maxWidth: 900, margin: "0 auto", padding: "0 1.5rem" }}>
+        {error && <ErrorBanner message={error} />}
 
-      {error && <ErrorBanner message={error} />}
+        <ExpenseFilters
+          categories={CATEGORIES}
+          filterCategory={filterCategory}
+          sortOption={sortOption}
+          onFilterChange={setFilterCategory}
+          onSortChange={setSortOption}
+        />
 
-      <ExpenseFilters
-        categories={CATEGORIES}
-        filterCategory={filterCategory}
-        sortByDate={sortByDate}
-        onFilterChange={setFilterCategory}
-        onSortChange={setSortByDate}
-      />
+        <ExpenseTable
+          expenses={expenses}
+          loading={loading}
+          total={total}
+          onEdit={setEditingExpense}
+          onDelete={(id) => setDeletingId(id)}
+        />
 
-      <ExpenseTable expenses={expenses} loading={loading} total={total} />
+        {deletingId && (
+          <ConfirmDeleteModal
+            onConfirm={confirmDelete}
+            onClose={() => setDeletingId(null)}
+          />
+        )}
+      </main>
+
+      {/* Add Modal */}
+      {showAddModal && (
+        <AddExpenseModal
+          categories={CATEGORIES}
+          submitting={submitting}
+          onSubmit={submitExpense}
+          onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {editingExpense && (
+        <EditModal
+          expense={editingExpense}
+          categories={CATEGORIES}
+          submitting={submitting}
+          onSubmit={handleUpdate}
+          onClose={() => setEditingExpense(null)}
+        />
+      )}
     </div>
   );
 }
