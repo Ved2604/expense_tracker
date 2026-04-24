@@ -8,7 +8,6 @@ const client = axios.create({
   timeout: 10000,
 });
 
-// Generate a UUID v4 for idempotency keys
 export const generateIdempotencyKey = (): string => {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -34,5 +33,20 @@ export const getExpenses = async (params?: {
   const response = await client.get<ApiResponse<Expense[]>>("/expenses", {
     params,
   });
+  return response.data.data;
+};
+
+export const deleteExpense = async (id: string): Promise<void> => {
+  await client.delete(`/expenses/${id}`);
+};
+
+export const updateExpense = async (
+  id: string,
+  payload: Partial<Omit<CreateExpensePayload, "idempotency_key">>,
+): Promise<Expense> => {
+  const response = await client.patch<ApiResponse<Expense>>(
+    `/expenses/${id}`,
+    payload,
+  );
   return response.data.data;
 };

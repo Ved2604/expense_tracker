@@ -119,4 +119,83 @@ router.get("/", (req: Request<{}, {}, {}, GetExpensesQuery>, res: Response) => {
   return res.status(200).json({ data: converted });
 });
 
+// DELETE /expenses/:id
+router.delete("/:id", (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const expense = db.prepare("SELECT * FROM expenses WHERE id = ?").get(id);
+  if (!expense) {
+    return res.status(404).json({ error: "Expense not found" });
+  }
+
+  db.prepare("DELETE FROM idempotency_keys WHERE expense_id = ?").run(id);
+  db.prepare("DELETE FROM expenses WHERE id = ?").run(id);
+
+  return res
+    .status(200)
+    .json({ data: { message: "Expense deleted successfully" } });
+});
+
+// PATCH /expenses/:id
+router.patch(
+  "/:id",
+  (
+    req: Request<{ id: string }, {}, Partial<CreateExpenseBody>>,
+    res: Response,
+  ) => {
+    const { id } = req.params;
+    const { amount, category, description, date } = req.body;
+
+    const existing = db
+      .prepare("SELECT * FROM expenses WHERE id = ?")
+      .get(id) as Expense | undefined;
+    if (!existing) {
+      return res.status(404).json({ error: "Expense not found" });
+    }
+
+    if (
+      amount !== undefined &&
+      (typeof amount !== "number" || amount <= 0 || amount > 10000000)
+    ) {
+      return res
+        .status(400)
+        .json({ error: "amount must be between ₹0.01 and ₹1,00,00,000" });
+    }
+
+    if (date !== undefined) {
+      if (isNaN(Date.parse(date))) {
+        return res
+          .status(400)
+          .json({ error: "date must be a valid date string (YYYY-MM-DD)" });
+      }
+      const today = new Date().toISOString().split("T")[0];
+      if (date > today) {
+        return res.status(400).json({ error: "date cannot be in the future" });
+      }
+    }
+
+    const updatedAmount =
+      amount !== undefined ? toPaise(amount) : existing.amount;
+    const updatedCategory = category?.trim() ?? existing.category;
+    const updatedDescription = description?.trim() ?? existing.description;
+    const updatedDate = date ?? existing.date;
+
+    db.prepare(
+      `
+    UPDATE expenses
+    SET amount = ?, category = ?, description = ?, date = ?
+    WHERE id = ?
+  `,
+    ).run(updatedAmount, updatedCategory, updatedDescription, updatedDate, id);
+
+    const updated = db
+      .prepare("SELECT * FROM expenses WHERE id = ?")
+      .get(id) as Expense;
+
+    return res.status(200).json({
+      data: { ...updated, amount: toRupees(updated.amount) },
+    });
+  },
+);
+
 export default router;
