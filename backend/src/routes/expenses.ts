@@ -23,8 +23,10 @@ router.post("/", (req: Request<{}, {}, CreateExpenseBody>, res: Response) => {
     });
   }
 
-  if (typeof amount !== "number" || amount <= 0) {
-    return res.status(400).json({ error: "amount must be a positive number" });
+  if (typeof amount !== "number" || amount <= 0 || amount > 10000000) {
+    return res
+      .status(400)
+      .json({ error: "amount must be between ₹0.01 and ₹1,00,00,000" });
   }
 
   if (!date || isNaN(Date.parse(date))) {

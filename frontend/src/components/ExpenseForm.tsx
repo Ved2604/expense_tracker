@@ -55,6 +55,7 @@ export default function ExpenseForm({
             <input
               type="number"
               min="0.01"
+              max="10000000"
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}

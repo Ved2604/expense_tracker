@@ -49,8 +49,8 @@ export const useExpenses = () => {
     date: string;
   }): Promise<boolean> => {
     const parsedAmount = parseFloat(payload.amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError("Amount must be a positive number.");
+    if (isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > 10000000) {
+      setError("Amount must be between ₹0.01 and ₹1,00,00,000.");
       return false;
     }
     if (!payload.date) {
