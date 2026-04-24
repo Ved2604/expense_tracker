@@ -1,15 +1,17 @@
+import type { SortOption } from "../hooks/useExpenses";
+
 interface Props {
   categories: string[];
   filterCategory: string;
-  sortByDate: boolean;
+  sortOption: SortOption;
   onFilterChange: (category: string) => void;
-  onSortChange: (sort: boolean) => void;
+  onSortChange: (sort: SortOption) => void;
 }
 
 export default function ExpenseFilters({
   categories,
   filterCategory,
-  sortByDate,
+  sortOption,
   onFilterChange,
   onSortChange,
 }: Props) {
@@ -18,19 +20,20 @@ export default function ExpenseFilters({
       style={{
         display: "flex",
         gap: "1rem",
-        alignItems: "center",
-        marginBottom: "1rem",
+        alignItems: "flex-end",
+        marginBottom: "1.5rem",
         flexWrap: "wrap",
       }}
     >
       <div>
-        <label>Filter by category: </label>
+        <label className="label">Filter by Category</label>
         <select
           value={filterCategory}
           onChange={(e) => onFilterChange(e.target.value)}
-          style={selectStyle}
+          className="input"
+          style={{ width: "auto", minWidth: 160 }}
         >
-          <option value="">All</option>
+          <option value="">All Categories</option>
           {categories.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -38,29 +41,21 @@ export default function ExpenseFilters({
           ))}
         </select>
       </div>
-      <label
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.4rem",
-          cursor: "pointer",
-        }}
-      >
-        <input
-          type="checkbox"
-          checked={sortByDate}
-          onChange={(e) => onSortChange(e.target.checked)}
-        />
-        Sort by date (newest first)
-      </label>
+
+      <div>
+        <label className="label">Sort By</label>
+        <select
+          value={sortOption}
+          onChange={(e) => onSortChange(e.target.value as SortOption)}
+          className="input"
+          style={{ width: "auto", minWidth: 200 }}
+        >
+          <option value="date_desc">Date (Newest First)</option>
+          <option value="date_asc">Date (Oldest First)</option>
+          <option value="amount_desc">Amount (High to Low)</option>
+          <option value="amount_asc">Amount (Low to High)</option>
+        </select>
+      </div>
     </div>
   );
 }
-
-const selectStyle: React.CSSProperties = {
-  padding: "0.5rem",
-  marginLeft: "0.5rem",
-  borderRadius: 4,
-  border: "1px solid #d1d5db",
-  fontSize: "1rem",
-};
