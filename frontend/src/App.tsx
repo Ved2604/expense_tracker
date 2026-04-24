@@ -6,6 +6,7 @@ import AddExpenseModal from "./components/AddExpenseModal";
 import EditModal from "./components/EditModal";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { useState } from "react";
+import { useTheme } from "./context/ThemeContext";
 
 export default function App() {
   const {
@@ -29,6 +30,7 @@ export default function App() {
   } = useExpenses();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { theme, toggle } = useTheme();
 
   const confirmDelete = async () => {
     if (!deletingId) return;
@@ -69,12 +71,25 @@ export default function App() {
               Expense Tracker
             </h1>
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowAddModal(true)}
+          <div
+            style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}
           >
-            + Add Expense
-          </button>
+            <button
+              className="btn btn-secondary"
+              style={{ padding: "0.5rem 0.75rem", fontSize: "1rem" }}
+              onClick={toggle}
+              title="Toggle theme"
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+            <button
+              className="btn btn-primary"
+              style={{ padding: "0.5rem 1.1rem", fontSize: "0.85rem" }}
+              onClick={() => setShowAddModal(true)}
+            >
+              + Add Expense
+            </button>
+          </div>
         </div>
       </header>
 
