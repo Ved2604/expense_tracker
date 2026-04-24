@@ -95,6 +95,7 @@ export default function ExpenseForm({
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
+              max={new Date().toISOString().split("T")[0]}
               style={inputStyle}
             />
           </div>

@@ -17,22 +17,25 @@ router.post("/", (req: Request<{}, {}, CreateExpenseBody>, res: Response) => {
 
   // --- Validation ---
   if (!amount || !category || !description || !date || !idempotency_key) {
-    return res
-      .status(400)
-      .json({
-        error:
-          "amount, category, description, date, and idempotency_key are required",
-      });
+    return res.status(400).json({
+      error:
+        "amount, category, description, date, and idempotency_key are required",
+    });
   }
 
   if (typeof amount !== "number" || amount <= 0) {
     return res.status(400).json({ error: "amount must be a positive number" });
   }
 
-  if (isNaN(Date.parse(date))) {
+  if (!date || isNaN(Date.parse(date))) {
     return res
       .status(400)
       .json({ error: "date must be a valid date string (YYYY-MM-DD)" });
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+  if (date > today) {
+    return res.status(400).json({ error: "date cannot be in the future" });
   }
 
   // --- Idempotency check ---
