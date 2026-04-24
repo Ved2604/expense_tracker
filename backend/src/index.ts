@@ -1,13 +1,21 @@
 import express from "express";
 import cors from "cors";
 import expensesRouter from "./routes/expenses";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 15 minutes
+  max: 30, // max 100 requests per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." },
+});
+app.use(limiter);
 // Health check
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
