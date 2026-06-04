@@ -1,4 +1,4 @@
-# 💸 Paisa — Personal Expense Tracker
+
 
 A minimal, production-grade full-stack expense tracker built with Node.js, TypeScript, React, and SQLite.
 
